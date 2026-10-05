@@ -138,7 +138,7 @@
           </div>
         </div>
 
-        <!-- Panel de Usuario / Autenticación -->
+        <!-- Panel de Usuario / Autenticación y Estado de Guardado -->
         <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
           <div id="auth-logged-out-view" class="flex items-center gap-2">
             <button type="button" id="btn-open-auth-modal" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer">
@@ -147,9 +147,15 @@
           </div>
 
           <div id="auth-logged-in-view" class="hidden flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <!-- Indicador dinámico de autoguardado -->
+            <div id="cloud-save-status" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-cloud text-slate-400"></i>
+              <span>Sincronizado</span>
+            </div>
+
             <div class="text-right hidden sm:block mr-1">
               <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sesión Alumno</div>
-              <div id="user-display-email" class="text-xs font-black text-slate-800">alumno@ies.edu</div>
+              <div id="user-display-email" class="text-xs font-black text-slate-800 truncate max-w-[150px]">alumno@ies.edu</div>
             </div>
 
             <!-- Botón Cargar Ficha (Abre modal de selección) -->
@@ -162,8 +168,8 @@
               <i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar Ficha
             </button>
 
-            <!-- Botón Guardar en Nube -->
-            <button type="button" id="btn-save-cloud" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-blue-600/20 active:scale-95 cursor-pointer" title="Guardar cambios en Firestore">
+            <!-- Botón Forzar Guardado Manual -->
+            <button type="button" id="btn-save-cloud" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-blue-600/20 active:scale-95 cursor-pointer" title="Forzar guardado manual inmediato en Firestore">
               <i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Nube
             </button>
 
@@ -176,7 +182,7 @@
 
       </div>
 
-      <!-- Barra de herramientas operativas secundarias -->
+      <!-- Barra de herramientas operativas secundarias (Sin botones JSON) -->
       <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs font-bold">
         <button type="button" id="btn-open-reset-modal" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center gap-1.5 cursor-pointer" title="Empezar receta en blanco">
           <i class="fa-solid fa-rotate-left text-slate-500"></i> Vaciar / Nuevo
@@ -524,7 +530,7 @@
     document.getElementById('btn-cancel-load-modal').addEventListener('click', () => closeModal('modal-load-recipe'));
   </script>
 
-  <!-- LÓGICA DE APLICACIÓN CON FIREBASE V10 MODULAR -->
+  <!-- LÓGICA DE APLICACIÓN CON FIREBASE V10 MODULAR Y AUTOGUARDADO INTELIGENTE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -554,7 +560,7 @@
       deleteObject
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    // 1. CONFIGURACIÓN FIREBASE
+    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyCpqfTrm9aL_93eGEJ8419sNUlAVKhyEic",
       authDomain: "recetario-puo-taller.firebaseapp.com",
@@ -574,6 +580,7 @@
     let currentUser = null;
     let authIsRegisterMode = false;
     let currentRecipeDocId = null;
+    let autoSaveTimer = null;
 
     let currentRecipe = {
       title: "",
@@ -600,6 +607,7 @@
         loggedOutView.classList.add('hidden');
         loggedInView.classList.remove('hidden');
         userDisplay.textContent = user.email;
+        updateSaveStatus('saved');
         showToast(`Sesión activa: ${user.email}`, 'info');
       } else {
         loggedOutView.classList.remove('hidden');
@@ -609,6 +617,61 @@
         updateDeleteButtonVisibility();
       }
     });
+
+    // =========================================================================
+    // INDICADOR DE ESTADO DE GUARDADO
+    // =========================================================================
+    function updateSaveStatus(status) {
+      const el = document.getElementById('cloud-save-status');
+      if (!el) return;
+
+      if (status === 'saving') {
+        el.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center gap-1.5 transition-all';
+        el.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin text-amber-500"></i><span>Guardando...</span>';
+      } else if (status === 'saved') {
+        el.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-1.5 transition-all';
+        el.innerHTML = '<i class="fa-solid fa-cloud-check text-emerald-500"></i><span>Guardado en nube</span>';
+      } else if (status === 'error') {
+        el.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-1.5 transition-all';
+        el.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i><span>Error al guardar</span>';
+      } else {
+        el.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 flex items-center gap-1.5 transition-all';
+        el.innerHTML = '<i class="fa-solid fa-cloud text-slate-400"></i><span>Sincronizado</span>';
+      }
+    }
+
+    // =========================================================================
+    // AUTOGUARDADO INTELIGENTE (DEBOUNCE 1.5 SEGUNDOS TRAS DEJAR DE ESCRIBIR)
+    // =========================================================================
+    function triggerAutoSave() {
+      if (!currentUser) return;
+
+      // Si la receta aún no tiene ID, se le asigna uno permanente
+      if (!currentRecipeDocId) {
+        currentRecipeDocId = `receta_${Date.now()}`;
+        updateDeleteButtonVisibility();
+      }
+
+      updateSaveStatus('saving');
+      clearTimeout(autoSaveTimer);
+
+      autoSaveTimer = setTimeout(async () => {
+        try {
+          const docRef = doc(db, "recetas", currentRecipeDocId);
+          await setDoc(docRef, {
+            ...currentRecipe,
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          updateSaveStatus('saved');
+        } catch (err) {
+          console.warn("Fallo en autoguardado de texto:", err);
+          updateSaveStatus('error');
+        }
+      }, 1500);
+    }
 
     // =========================================================================
     // AUTENTICACIÓN
@@ -665,7 +728,7 @@
     });
 
     // =========================================================================
-    // GUARDADO Y STORAGE
+    // GUARDADO COMPLETO Y CARGA EN CLOUD
     // =========================================================================
     function updateDeleteButtonVisibility() {
       const btnDelete = document.getElementById('btn-delete-recipe');
@@ -702,7 +765,8 @@
         return;
       }
 
-      showToast('Guardando receta en la nube...', 'info');
+      updateSaveStatus('saving');
+      showToast('Guardando receta y subiendo adjuntos...', 'info');
 
       try {
         const [escandalloUrl, taskUrl, diagramUrl] = await Promise.all([
@@ -726,10 +790,12 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
 
-        showToast('¡Receta guardada en la base de datos!', 'success');
+        updateSaveStatus('saved');
+        showToast('¡Ficha guardada con éxito en la base de datos!', 'success');
         updateDeleteButtonVisibility();
       } catch (err) {
         console.error("Error guardando en Firestore:", err);
+        updateSaveStatus('error');
         showToast('Error al guardar en la nube: ' + err.message, 'error');
       }
     });
@@ -758,7 +824,7 @@
         if (querySnapshot.empty) {
           container.innerHTML = `
             <div class="py-8 text-center text-xs text-slate-500">
-              No tienes recetas guardadas aún en la nube. ¡Crea una y pulsa "Guardar en Nube"!
+              No tienes recetas guardadas aún en la nube. ¡Escribe una y se guardará automáticamente!
             </div>
           `;
           return;
@@ -815,6 +881,7 @@
           syncView();
           saveToLocalStorage();
           updateDeleteButtonVisibility();
+          updateSaveStatus('saved');
           closeModal('modal-load-recipe');
           showToast('Ficha cargada con éxito', 'success');
         }
@@ -849,6 +916,7 @@
         currentRecipeDocId = null;
         updateDeleteButtonVisibility();
         executeResetRecipe(false);
+        updateSaveStatus('synced');
 
         showToast('Ficha eliminada correctamente', 'success');
       } catch (err) {
@@ -858,17 +926,20 @@
     });
 
     // =========================================================================
-    // IMÁGENES Y ADJUNTOS
+    // IMÁGENES Y ADJUNTOS (AL SUBIR O PEGAR SE DISPARA AUTOGUARDADO EN LA NUBE)
     // =========================================================================
     window.handleDiagramUpload = (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         currentRecipe.diagramImg = event.target.result;
         renderDiagramView();
         saveToLocalStorage();
         showToast('Diagrama cargado', 'success');
+        if (currentUser) {
+          triggerAutoSave();
+        }
       };
       reader.readAsDataURL(file);
       e.target.value = '';
@@ -895,6 +966,7 @@
       renderDiagramView();
       saveToLocalStorage();
       showToast('Diagrama eliminado', 'info');
+      if (currentUser) triggerAutoSave();
     };
 
     window.handleEscandalloImageUpload = (e) => {
@@ -906,6 +978,7 @@
         renderEscandalloView();
         saveToLocalStorage();
         showToast('Ficha técnica cargada', 'success');
+        if (currentUser) triggerAutoSave();
       };
       reader.readAsDataURL(file);
       e.target.value = '';
@@ -935,6 +1008,7 @@
       renderEscandalloView();
       saveToLocalStorage();
       showToast('Anexo limpiado', 'info');
+      if (currentUser) triggerAutoSave();
     };
 
     window.handleTaskImageUpload = (e) => {
@@ -946,6 +1020,7 @@
         renderTaskView();
         saveToLocalStorage();
         showToast('Lista de tareas cargada', 'success');
+        if (currentUser) triggerAutoSave();
       };
       reader.readAsDataURL(file);
       e.target.value = '';
@@ -975,6 +1050,7 @@
       renderTaskView();
       saveToLocalStorage();
       showToast('Lista de trabajo limpiada', 'info');
+      if (currentUser) triggerAutoSave();
     };
 
     // Pegado directo con Ctrl+V
@@ -1001,6 +1077,7 @@
               showToast('¡Imagen pegada en Diagrama!', 'success');
             }
             saveToLocalStorage();
+            if (currentUser) triggerAutoSave();
           };
           reader.readAsDataURL(blob);
         }
@@ -1008,7 +1085,7 @@
     });
 
     // =========================================================================
-    // PERSISTENCIA LOCAL Y CAMPOS
+    // PERSISTENCIA LOCAL Y CAMPOS CON LLAMADA A AUTOGUARDADO
     // =========================================================================
     function setupGlobalInputListeners() {
       const sync = (id, key) => {
@@ -1017,6 +1094,7 @@
         el.addEventListener('input', (e) => {
           currentRecipe[key] = e.target.value;
           saveToLocalStorage();
+          triggerAutoSave();
         });
       };
 
@@ -1062,6 +1140,7 @@
       closeModal('modal-confirm-reset');
       currentRecipeDocId = null;
       updateDeleteButtonVisibility();
+      updateSaveStatus('synced');
 
       currentRecipe = {
         title: "",
