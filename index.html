@@ -146,21 +146,16 @@
             </button>
           </div>
 
-          <div id="auth-logged-in-view" class="hidden flex flex-wrap items-center gap-2 sm:gap-3">
-            <div class="text-right hidden sm:block">
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sesión Alumno</div>
+          <div id="auth-logged-in-view" class="hidden flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sesión Alumno</div>
               <div id="user-display-email" class="text-xs font-black text-slate-800">alumno@ies.edu</div>
             </div>
 
             <!-- Selector de recetas guardadas del alumno -->
-            <select id="user-recipes-select" onchange="window.handleSelectCloudRecipe(event)" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 gastro-input max-w-[200px] truncate">
+            <select id="user-recipes-select" onchange="window.handleSelectCloudRecipe(event)" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 gastro-input">
               <option value="">Mis recetas en la nube...</option>
             </select>
-
-            <!-- Botón de eliminar receta en nube (aparece solo con receta seleccionada) -->
-            <button type="button" id="btn-delete-recipe" onclick="window.openDeleteModal()" class="hidden px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition items-center gap-1.5 shadow-sm active:scale-95" title="Eliminar receta actual de la nube">
-              <i class="fa-solid fa-trash-can text-rose-600"></i> Eliminar
-            </button>
 
             <button type="button" onclick="window.handleCloudSave()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-blue-600/20 active:scale-95" title="Guardar cambios en Firestore">
               <i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Nube
@@ -174,22 +169,35 @@
 
       </div>
 
-      <!-- Barra de herramientas operativas secundarias (Sin botones JSON) -->
-      <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs font-bold">
-        <button type="button" onclick="window.openResetModal()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center gap-1.5" title="Empezar receta en blanco">
-          <i class="fa-solid fa-rotate-left text-slate-500"></i> Vaciar / Nuevo
-        </button>
+      <!-- Barra de herramientas operativas secundarias -->
+      <div class="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.openResetModal()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center gap-1.5" title="Empezar receta en blanco">
+            <i class="fa-solid fa-rotate-left text-slate-500"></i> Vaciar / Nuevo
+          </button>
+        </div>
 
-        <button type="button" onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white transition flex items-center gap-1.5 shadow-sm" title="Imprimir o exportar a PDF">
-          <i class="fa-solid fa-print text-amber-400"></i> Imprimir / PDF
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.exportRecipeJSON()" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition flex items-center gap-1.5" title="Descargar copia de seguridad .json">
+            <i class="fa-solid fa-floppy-disk text-emerald-600"></i> Copia (.json)
+          </button>
+          <label class="px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300 transition cursor-pointer flex items-center gap-1.5" title="Cargar copia local previa">
+            <i class="fa-solid fa-folder-open text-sky-600"></i> Cargar (.json)
+            <input type="file" id="input-cargar-json" accept=".json" class="hidden" onchange="window.importRecipeJSON(event)">
+          </label>
+          <button type="button" onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white transition flex items-center gap-1.5 shadow-sm" title="Imprimir o guardar en PDF">
+            <i class="fa-solid fa-print text-amber-400"></i> Imprimir / PDF
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- CONTENEDOR PRINCIPAL: DOSIER MAESTRO DE RECETA -->
     <main id="recipe-sheet-document" class="space-y-6">
 
-      <!-- PÁGINA 1: DENOMINACIÓN Y ORIGEN E HISTORIA -->
+      <!-- ========================================================================= -->
+      <!-- PÁGINA 1: DENOMINACIÓN Y ORIGEN E HISTORIA                                -->
+      <!-- ========================================================================= -->
       <section class="page-card bg-white border border-slate-200 rounded-2xl shadow-sm p-5 sm:p-7 md:p-8 space-y-6 print-border">
         
         <div class="border-b border-slate-200 pb-5">
@@ -261,7 +269,9 @@
 
       </section>
 
-      <!-- PÁGINA 2: ANEXO DE FICHA TÉCNICA Y ESCANDALLO -->
+      <!-- ========================================================================= -->
+      <!-- PÁGINA 2: ANEXO DE FICHA TÉCNICA Y ESCANDALLO                             -->
+      <!-- ========================================================================= -->
       <section class="page-card bg-white border border-slate-200 rounded-2xl shadow-sm p-5 sm:p-7 md:p-8 space-y-4 print-border page-break-before">
         <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div class="flex items-center gap-2">
@@ -298,7 +308,9 @@
         </div>
       </section>
 
-      <!-- PÁGINA 3: LISTA DE TRABAJO Y ASIGNACIÓN DE TAREAS -->
+      <!-- ========================================================================= -->
+      <!-- PÁGINA 3: LISTA DE TRABAJO Y ASIGNACIÓN DE TAREAS                        -->
+      <!-- ========================================================================= -->
       <section class="page-card bg-white border border-slate-200 rounded-2xl shadow-sm p-5 sm:p-7 md:p-8 space-y-4 print-border page-break-before">
         <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div class="flex items-center gap-2">
@@ -335,7 +347,9 @@
         </div>
       </section>
 
-      <!-- PÁGINA 4: DIAGRAMA DE FLUJO DEL EMPLATADO A TIEMPO CERO -->
+      <!-- ========================================================================= -->
+      <!-- PÁGINA 4: DIAGRAMA DE FLUJO DEL EMPLATADO A TIEMPO CERO                   -->
+      <!-- ========================================================================= -->
       <section class="page-card bg-white border border-slate-200 rounded-2xl shadow-sm p-5 sm:p-7 md:p-8 space-y-4 print-border page-break-before">
         <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div class="flex items-center gap-2">
@@ -410,43 +424,22 @@
     </div>
   </div>
 
-  <!-- MODAL DE SEGURIDAD PARA ELIMINAR FICHA DE LA NUBE -->
-  <div id="modal-confirm-delete" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-      <div class="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600 text-xl mb-4">
-        <i class="fa-solid fa-trash-can"></i>
-      </div>
-      <h3 class="text-base font-bold text-slate-900 mb-1.5">¿Eliminar definitivamente esta receta?</h3>
-      <p class="text-xs text-slate-600 leading-relaxed mb-6">
-        Esta acción eliminará la ficha técnica de la base de datos de manera irreversible, así como sus imágenes asociadas. No se podrá recuperar.
-      </p>
-      <div class="flex justify-end gap-2.5 text-xs font-bold">
-        <button type="button" onclick="window.closeDeleteModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-300">
-          Cancelar
-        </button>
-        <button type="button" onclick="window.executeDeleteRecipe()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition shadow-md shadow-rose-600/20">
-          Sí, eliminar receta
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE CONFIRMACIÓN PARA LIMPIAR FICHA (VACIAR PANTALLA) -->
+  <!-- MODAL DE CONFIRMACIÓN PARA LIMPIAR FICHA -->
   <div id="modal-confirm-reset" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-      <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-xl mb-4">
-        <i class="fa-solid fa-rotate-left"></i>
+      <div class="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600 text-xl mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h3 class="text-base font-bold text-slate-900 mb-1.5">¿Vaciar campos e iniciar un nuevo plato?</h3>
+      <h3 class="text-base font-bold text-slate-900 mb-1.5">¿Vaciar receta e iniciar una nueva en blanco?</h3>
       <p class="text-xs text-slate-600 leading-relaxed mb-6">
-        Se limpiarán los campos en pantalla para redactar una nueva elaboración. Si la receta actual estaba guardada en la nube, permanecerá a salvo en tu cuenta.
+        Esta acción limpiará los campos en pantalla para empezar un plato nuevo.
       </p>
       <div class="flex justify-end gap-2.5 text-xs font-bold">
         <button type="button" onclick="window.closeResetModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-300">
           Cancelar
         </button>
-        <button type="button" onclick="window.executeResetRecipe()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition shadow-md">
-          Sí, vaciar pantalla
+        <button type="button" onclick="window.executeResetRecipe()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition shadow-md shadow-rose-600/20">
+          Sí, vaciar todo
         </button>
       </div>
     </div>
@@ -475,7 +468,6 @@
       doc, 
       setDoc, 
       getDoc, 
-      deleteDoc,
       collection, 
       getDocs, 
       query, 
@@ -486,18 +478,17 @@
       getStorage, 
       ref, 
       uploadString, 
-      getDownloadURL,
-      deleteObject
+      getDownloadURL 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    // CONFIGURACIÓN FIREBASE
+    // 1. CONFIGURACIÓN FIREBASE EXTRAÍDA DE TU PROYECTO
     const firebaseConfig = {
-      apiKey: "AIzaSyCpqFTzm9aL_93eGEJ8419sNUlAVKhyEic",
+      apiKey: "AIzaSyCpqfTrm9aL_93eGEJ8419sNUlAVKhyEic",
       authDomain: "recetario-puo-taller.firebaseapp.com",
       projectId: "recetario-puo-taller",
       storageBucket: "recetario-puo-taller.firebasestorage.app",
       messagingSenderId: "809962434170",
-      appId: "1:809962434170:web:4b1f628a97d99d91ad15c3"
+      appId: "1:809962434170:web:4b1f528a97d99d91ad15c3"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -543,7 +534,6 @@
         loggedInView.classList.add('hidden');
         userDisplay.textContent = '';
         currentRecipeDocId = null;
-        updateDeleteButtonVisibility();
       }
     });
 
@@ -589,7 +579,7 @@
       try {
         if (authIsRegisterMode) {
           await createUserWithEmailAndPassword(auth, email, password);
-          showToast('¡Cuenta creada con éxito!', 'success');
+          showToast('¡Cuenta creada e iniciada con éxito!', 'success');
         } else {
           await signInWithEmailAndPassword(auth, email, password);
           showToast('Sesión iniciada con éxito', 'success');
@@ -598,7 +588,7 @@
       } catch (err) {
         console.error(err);
         let msg = 'Error de autenticación';
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Contraseña o usuario incorrecto';
+        if (err.code === 'auth/wrong-password') msg = 'Contraseña incorrecta';
         if (err.code === 'auth/user-not-found') msg = 'No existe alumno con este correo';
         if (err.code === 'auth/email-already-in-use') msg = 'El correo ya está registrado';
         if (err.code === 'auth/weak-password') msg = 'La contraseña debe tener al menos 6 caracteres';
@@ -612,35 +602,14 @@
     };
 
     // =========================================================================
-    // GUARDADO, CARGA Y ELIMINACIÓN EN CLOUD (FIRESTORE & STORAGE)
+    // GUARDADO Y CARGA EN CLOUD (FIRESTORE & STORAGE)
     // =========================================================================
-    function updateDeleteButtonVisibility() {
-      const btnDelete = document.getElementById('btn-delete-recipe');
-      if (currentRecipeDocId && currentUser) {
-        btnDelete.classList.remove('hidden');
-        btnDelete.classList.add('flex');
-      } else {
-        btnDelete.classList.add('hidden');
-        btnDelete.classList.remove('flex');
-      }
-    }
-
     async function uploadImageIfBase64(dataUrl, folderName) {
       if (!dataUrl || !dataUrl.startsWith('data:image')) return dataUrl;
       const fileId = `${folderName}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const storageRef = ref(storage, `recetas/${currentUser.uid}/${fileId}`);
       await uploadString(storageRef, dataUrl, 'data_url');
       return await getDownloadURL(storageRef);
-    }
-
-    async function deleteStorageFileByUrl(fileUrl) {
-      if (!fileUrl || !fileUrl.includes('firebasestorage.googleapis.com')) return;
-      try {
-        const fileRef = ref(storage, fileUrl);
-        await deleteObject(fileRef);
-      } catch (e) {
-        console.warn('No se pudo borrar archivo de storage o ya fue eliminado:', e);
-      }
     }
 
     window.handleCloudSave = async () => {
@@ -652,6 +621,7 @@
       showToast('Guardando receta en la nube...', 'info');
 
       try {
+        // 1. Subir imágenes pesadas a Storage si aún están en base64
         const [escandalloUrl, taskUrl, diagramUrl] = await Promise.all([
           uploadImageIfBase64(currentRecipe.escandalloImg, 'escandallo'),
           uploadImageIfBase64(currentRecipe.taskImg, 'task'),
@@ -662,6 +632,7 @@
         currentRecipe.taskImg = taskUrl;
         currentRecipe.diagramImg = diagramUrl;
 
+        // 2. Identificador de receta
         const recipeId = currentRecipeDocId || `receta_${Date.now()}`;
         currentRecipeDocId = recipeId;
 
@@ -674,15 +645,14 @@
         }, { merge: true });
 
         showToast('¡Receta guardada en la base de datos!', 'success');
-        updateDeleteButtonVisibility();
-        await loadUserCloudRecipesList(currentRecipeDocId);
+        loadUserCloudRecipesList();
       } catch (err) {
         console.error("Error guardando en Firestore:", err);
         showToast('Error al guardar en la nube: ' + err.message, 'error');
       }
     };
 
-    async function loadUserCloudRecipesList(selectedId = null) {
+    async function loadUserCloudRecipesList() {
       if (!currentUser) return;
       const select = document.getElementById('user-recipes-select');
       select.innerHTML = '<option value="">Cargando recetas...</option>';
@@ -696,10 +666,7 @@
           const data = docSnapshot.data();
           const opt = document.createElement('option');
           opt.value = docSnapshot.id;
-          opt.textContent = data.title ? (data.title.substring(0, 28) + (data.title.length > 28 ? '...' : '')) : 'Sin título';
-          if (selectedId && docSnapshot.id === selectedId) {
-            opt.selected = true;
-          }
+          opt.textContent = data.title ? (data.title.substring(0, 32) + '...') : 'Sin título';
           select.appendChild(opt);
         });
       } catch (e) {
@@ -710,11 +677,7 @@
 
     window.handleSelectCloudRecipe = async (e) => {
       const docId = e.target.value;
-      if (!docId) {
-        currentRecipeDocId = null;
-        updateDeleteButtonVisibility();
-        return;
-      }
+      if (!docId) return;
 
       try {
         showToast('Cargando receta...', 'info');
@@ -726,53 +689,11 @@
           currentRecipe = docSnap.data();
           syncView();
           saveToLocalStorage();
-          updateDeleteButtonVisibility();
           showToast('Receta cargada desde la nube', 'success');
         }
       } catch (err) {
         console.error(err);
         showToast('Error al cargar la receta', 'error');
-      }
-    };
-
-    // ELIMINACIÓN DE LA FICHA EN FIRESTORE Y STORAGE
-    window.openDeleteModal = () => {
-      if (!currentRecipeDocId) return;
-      document.getElementById('modal-confirm-delete').classList.remove('hidden');
-      document.getElementById('modal-confirm-delete').classList.add('flex');
-    };
-
-    window.closeDeleteModal = () => {
-      document.getElementById('modal-confirm-delete').classList.add('hidden');
-      document.getElementById('modal-confirm-delete').classList.remove('flex');
-    };
-
-    window.executeDeleteRecipe = async () => {
-      if (!currentRecipeDocId || !currentUser) return;
-      window.closeDeleteModal();
-      showToast('Eliminando receta de la base de datos...', 'info');
-
-      try {
-        // 1. Borrar adjuntos en Storage si existen
-        await Promise.all([
-          deleteStorageFileByUrl(currentRecipe.escandalloImg),
-          deleteStorageFileByUrl(currentRecipe.taskImg),
-          deleteStorageFileByUrl(currentRecipe.diagramImg)
-        ]);
-
-        // 2. Borrar documento de Firestore
-        await deleteDoc(doc(db, "recetas", currentRecipeDocId));
-
-        // 3. Resetear pantalla
-        currentRecipeDocId = null;
-        updateDeleteButtonVisibility();
-        window.executeResetRecipe(false);
-        await loadUserCloudRecipesList();
-
-        showToast('Receta eliminada correctamente', 'success');
-      } catch (err) {
-        console.error("Error al eliminar receta:", err);
-        showToast('Error al eliminar: ' + err.message, 'error');
       }
     };
 
@@ -896,6 +817,7 @@
       showToast('Lista de trabajo limpiada', 'info');
     };
 
+    // Pegado directo con Ctrl+V
     window.addEventListener('paste', (e) => {
       const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
       if (!items) return;
@@ -926,7 +848,7 @@
     });
 
     // =========================================================================
-    // PERSISTENCIA LOCAL Y CAMPOS
+    // PERSISTENCIA LOCAL Y SINCRONIZACIÓN DE CAMPOS
     // =========================================================================
     function setupGlobalInputListeners() {
       const sync = (id, key) => {
@@ -976,6 +898,50 @@
       }
     }
 
+    // =========================================================================
+    // EXPORTACIÓN / IMPORTACIÓN JSON Y RESET
+    // =========================================================================
+    window.exportRecipeJSON = () => {
+      const safeTitle = (currentRecipe.title || 'receta_maestra_puo')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/gi, '_')
+        .substring(0, 35);
+
+      const dataToExport = {
+        ...currentRecipe,
+        exportedAt: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeTitle || 'receta'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Archivo JSON guardado con éxito', 'success');
+    };
+
+    window.importRecipeJSON = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          currentRecipe = JSON.parse(event.target.result);
+          currentRecipeDocId = null;
+          syncView();
+          saveToLocalStorage();
+          showToast('Receta importada correctamente', 'success');
+        } catch (err) {
+          showToast('El archivo no es un JSON válido', 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    };
+
     window.openResetModal = () => {
       document.getElementById('modal-confirm-reset').classList.remove('hidden');
       document.getElementById('modal-confirm-reset').classList.add('flex');
@@ -986,13 +952,9 @@
       document.getElementById('modal-confirm-reset').classList.remove('flex');
     };
 
-    window.executeResetRecipe = (showFeedback = true) => {
+    window.executeResetRecipe = () => {
       window.closeResetModal();
       currentRecipeDocId = null;
-      updateDeleteButtonVisibility();
-      const select = document.getElementById('user-recipes-select');
-      if (select) select.value = "";
-
       currentRecipe = {
         title: "",
         history: "",
@@ -1006,9 +968,7 @@
       };
       syncView();
       saveToLocalStorage();
-      if (showFeedback) {
-        showToast('Pantalla en blanco preparada para nuevo plato', 'info');
-      }
+      showToast('Recetario en blanco preparado para nuevo plato', 'info');
     };
 
     function showToast(mensaje, tipo = 'info') {
@@ -1033,6 +993,7 @@
       }, 3000);
     }
 
+    // Inicialización al cargar la página
     setupGlobalInputListeners();
     loadFromLocalStorage();
   </script>
